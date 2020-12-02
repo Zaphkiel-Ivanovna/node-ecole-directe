@@ -1,18 +1,18 @@
 module.exports = class Eleve {
     constructor(session, data, family) {
-        console.log(data)
         this.type = "Élève";
         // Default values
         this.session = session;
         this.id = data.id;
         this.prenom = data.prenom;
         this.nom = data.nom;
-        this.sexe = data.profile.sexe;
         this.classe = data.classe
             ? data.classe.libelle
             : data.profile.classe.libelle;
+        if (family) this.family = family;
     }
 
+    // Fetch des notes de l'élève
     async fetchNotes() {
         return new Promise(async resolve => {
             const data = await this.session.request(
@@ -25,6 +25,7 @@ module.exports = class Eleve {
         });
     }
 
+    // Fetch du cahier de texte de l'élève
     async fetchCahierDeTexte() {
         return new Promise(async resolve => {
             const data = await this.session.request(
@@ -43,23 +44,6 @@ module.exports = class Eleve {
         });
     }
 
-    async fetchCahierDeTexteJour (jour) {
-        return new Promise(async resolve => {
-            const data = await this.session.request(
-                "https://api.ecoledirecte.com/v3/Eleves/" +
-                    this.id +
-                    "/cahierdetexte/" + jour + ".awp?verbe=get&"
-            );
-            const cahierDeTexte = [];
-            Object.keys(data.data.matieres).forEach(matiere => {
-                cahierDeTexte.push({
-                    matiere: data.data.matieres[matiere]
-                })
-            })
-            resolve(cahierDeTexte)
-        })
-    }
-
     async fetchEmploiDuTemps(dateDebut, dateFin) {
         return new Promise(async resolve => {
             const data = await this.session.request(
@@ -72,7 +56,8 @@ module.exports = class Eleve {
                     dateFin: dateFin
                 }
             );
-            resolve(data.data);
+            this.emploiDuTemps = data.data;
+            resolve(this.emploiDuTemps);
         });
     }
 
@@ -83,7 +68,8 @@ module.exports = class Eleve {
                     this.id +
                     "/viescolaire.awp?verbe=get&"
             );
-            resolve(data.data);
+            this.vieScolaire = data.data;
+            resolve(this.vieScolaire);
         });
     }
 
@@ -94,7 +80,8 @@ module.exports = class Eleve {
                     this.id +
                     "/messages.awp?verbe=getall&typeRecuperation=received&orderBy=date&order=desc&page=0&itemsPerPage=20&onlyRead=&query=&idClasseur=0"
             );
-            resolve(data.data);
+            this.messagerie = data.data;
+            resolve(this.messagerie);
         });
     }
 };
